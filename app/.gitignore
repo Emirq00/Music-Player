@@ -67,3 +67,6 @@ build/
 # Ejecutables y temporales
 *.lock
 *.tmp
+
+# Backups
+*~
