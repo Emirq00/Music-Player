@@ -1,47 +1,43 @@
 import 'package:flutter/material.dart';
-import '../code/counter.dart';
+import 'package:src/mining/getData.dart';
+// import 'gui/home.dart';
+import 'dart:io';
+
 
 class HomePage extends StatefulWidget {
-  const HomePage({ super.key });
-
   @override
-  State<HomePage> createState() => _HomePageState();
+  _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  final Counter counter = Counter();
+  late Future<List<File>> _filesFuture;
 
-  void _increment() {
-    setState(() => counter.increment());
-  }
-
-  void _decrement() {
-    setState(() => counter.decrement());
+  @override
+  void initState() {
+    super.initState();
+    _filesFuture = scanFiles(extensions: ['.mp3']);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Simple counter')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Current value: ${counter.value}',
-              style: const TextStyle(fontSize: 24),
+      appBar: AppBar(title: Text('Archivos encontrados')),
+      body: FutureBuilder<List<File>>(
+        future: _filesFuture,
+        builder: (ctx, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done)
+            return Center(child: CircularProgressIndicator());
+          if (snapshot.hasError)
+            return Center(child: Text('Error: ${snapshot.error}'));
+          final files = snapshot.data!;
+          return ListView.builder(
+            itemCount: files.length,
+            itemBuilder: (_, i) => ListTile(
+              title: Text(files[i].path.split(Platform.pathSeparator).last),
+              subtitle: Text(files[i].path),
             ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(onPressed: _increment, child: const Text('+')),
-                const SizedBox(width: 20),
-                ElevatedButton(onPressed: _decrement, child: const Text('-')),
-              ],
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
