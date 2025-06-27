@@ -1,0 +1,12 @@
+assets/database/*~
+
+core/*~
+core/database/*~
+core/mining/*~
+core/models/*~
+core/utils/*~
+
+features/player/*~
+features/playlists/*~
+
+gui/*~

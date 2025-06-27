@@ -10,6 +10,16 @@ void main() async {
       await windowManager.show();
       await windowManager.focus();
   });
+
+  try {
+    final files = await scanFiles(extensions: ['.mp3']);
+    print("Encontré ${files.length} archivos");
+    for (var ola in files) {
+      print(ola.path);
+    }
+  } catch (e) {
+    print("No se pudo D:");
+  }
   
   runApp(const MyApp());
 }
@@ -22,23 +32,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Music-Database',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
-
-class MyHomePage extends StatelessWidget {
-  const MyHomePage({super.key, required this.title});
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: const Center(child: Text('Hello, Emiroso!')),
+      home: const MyHomePage(),
     );
   }
 }
