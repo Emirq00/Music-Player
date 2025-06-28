@@ -37,11 +37,23 @@ CREATE TABLE in_group (
     FOREIGN KEY   (id_group) REFERENCES groups(id_group)
 );
 
+CREATE TABLE covers (
+    hash     TEXT PRIMARY KEY, 
+    picture  BLOB
+);
+
 CREATE TABLE albums (
     id_album      INTEGER PRIMARY KEY,
     path          TEXT,
     name          TEXT,
-    year          INTEGER
+    year          INTEGER,
+    cover_hash    TEXT,
+    FOREIGN KEY (cover_hash) REFERENCES covers(hash)
+);
+
+CREATE TABLE audios (
+    hash  TEXT PRIMARY KEY,
+    bytes BLOB NOT NULL
 );
 
 CREATE TABLE rolas (
@@ -53,6 +65,10 @@ CREATE TABLE rolas (
     track         INTEGER,
     year          INTEGER,
     genre         TEXT,
-    FOREIGN KEY   (id_performer) REFERENCES performers(id_performer)
-    FOREIGN KEY   (id_album) REFERENCES albums(id_album)
+    cover_hash    TEXT,
+    audio_hash    TEXT NOT NULL,
+    FOREIGN KEY   (id_performer) REFERENCES performers(id_performer),
+    FOREIGN KEY   (id_album) REFERENCES albums(id_album),
+    FOREIGN KEY   (cover_hash) REFERENCES covers(hash),
+    FOREIGN KEY   (audio_hash) REFERENCES audios(hash)
 );
