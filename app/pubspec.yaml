@@ -1,5 +1,5 @@
 name: app
-description: "A new Flutter project."
+description: "Music Database Flutter project."
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -7,15 +7,17 @@ environment:
   sdk: ^3.8.1
 
 dependencies:
-  flutter:
-    sdk: flutter
+  flutter: { sdk: flutter }
   window_manager: ^0.5.0
   sqflite: ^2.3.2
+  id3: ^1.0.2 
   path_provider: ^2.1.5
   path: ^1.9.0
+  crypto: ^3.0.3
   file_selector: ^1.0.3
-  permission_handler: ^12.0.0+1
+  permission_handler: ^12.0.0
   cupertino_icons: ^1.0.8
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:
@@ -25,4 +27,5 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/database/schema.sql
+    - assets/database/
+    - assets/covers/

@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Preferences {
@@ -8,23 +11,25 @@ class Preferences {
   static Future<String> getPath() async {
     final prefs = await SharedPreferences.getInstance();
     final stored = prefs.getString(_keyMusicPath);
-    if (stored != null && await Directory(stored).exists()) {
+    if (stored != null && Directory(stored).existsSync()) {
       return stored;
     }
     // Fallback por plataforma
-    if (Platform.isAndroid) return '/storage/emulated/0/Music';
-    if (Platform.isIOS)    return (await getApplicationDocumentsDirectory()).path;
-    final home = (await getHomeDirectory()).path;
-    return p.join(home, 'Music');
+    if (Platform.isAndroid) {
+      return '/storage/emulated/0/Music';
+    }
+    if (Platform.isIOS) {
+      return (await getApplicationDocumentsDirectory()).path;
+    }
+    return p.join(Platform.environment['HOME'] ?? '.', 'Music');
   }
 
   /// Set the new path
-  static Future<void> setPath(String newPath) async {
-    final dir = Directory(newPath);
-    if (!await dir.exists()) {
-      throw Exception('El directorio no existe: $newPath');
+  static Future<void> setPath(String path) async {
+    if (!Directory(path).existsSync()) {
+      throw Exception('Ruta inválida');
     }
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_keyMusicPath, dir.path);
+    await prefs.setString(_keyMusicPath, path);
   }
 }

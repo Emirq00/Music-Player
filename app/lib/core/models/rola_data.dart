@@ -1,4 +1,6 @@
-class FileData {
+import 'dart:typed_data';
+
+class RolaData {
   final String path;
   final String title;
   final String performer;
@@ -10,7 +12,7 @@ class FileData {
   final Uint8List audioBytes;
   final Uint8List? coverBytes;
 
-  const FileData({
+  const RolaData({
     required this.path,
     required this.title,
     required this.performer,
@@ -22,16 +24,4 @@ class FileData {
     required this.audioBytes,
     this.coverBytes,
   });
-
-  Map<String, Object?>
-  toRolaRow(int idAlbum, int idPerformer) => {
-    'path'      : path,
-    'title'     : title,
-    'track'     : track,
-    'year'      : year,
-    'genre'     : genre,
-    'id_album'  : idAlbum,
-    'id_performer': idPerformer,
-    'audio_hash': audioHash,
-  };
 }

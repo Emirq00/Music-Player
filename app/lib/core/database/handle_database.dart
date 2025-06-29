@@ -1,15 +1,15 @@
+import 'dart:typed_data'; 
 import 'package:sqflite/sqflite.dart';
-import 'package:lib/core/database/up_database.dart';
+import 'up_database.dart';
 
 class HandleDatabase {
+  HandleDatabase._(); //private constructor
   static final HandleDatabase _instance = HandleDatabase._();
   factory HandleDatabase() => _instance; //ensure the class to always return instance
 
-  HandleDatabase._(); //private constructor
+  Future<Database> get _db async => UpDatabase.instance.database;
 
-  Future<Database> get _db async => await UpDatabase().instance.database;
-
-  /// -- GETTER -- ///
+  ///  -- GETTER --  ///
   Future<Map<String, int>> getAllPerformers() async {
     final rows = await (await _db).query('performers', columns: ['id_performer', 'name']);
     return { for (final r in rows) r['name'] as String : r['id_performer'] as int };
@@ -33,12 +33,11 @@ class HandleDatabase {
     return rows.map((r) => r['hash'] as String).toSet();
   }
   
-  ///  -- INSERTERS -- ///
+  ///  -- INSERTERS --  ///
   
   Future<int> insertPerformer({required int idType, required String name}) async {
     final db = await _db;
 
-    // 1 — existe?
     final row = await db.query(
       'performers',
       columns: ['id_performer'],
@@ -48,7 +47,6 @@ class HandleDatabase {
     );
     if (row.isNotEmpty) return row.first['id_performer'] as int;
 
-    // 2 — insertar
     final id = await db.insert(
       'performers',
       { 'id_type': idType, 'name': name },
@@ -120,6 +118,17 @@ class HandleDatabase {
         'audioHash'    : audioHash,
       },
       conflictAlgorithm: ConflictAlgorithm.ignore,
+    );
+  }
+
+  /// -- UPDATERS --  ///
+
+  Future<void> updateAlbumCover({ required int    albumId, required String coverHash }) async {
+    await (await _db).update(
+      'albums',
+      { 'cover_hash': coverHash },
+      where: 'id_album = ? AND cover_hash IS NULL',
+      whereArgs: [albumId],
     );
   }
 }

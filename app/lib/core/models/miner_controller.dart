@@ -2,25 +2,26 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as p;
 
-import '../core/miner/miner.dart';
-import '../core/models/file_data.dart';
-import '../core/database/handle_database.dart';
-import '../core/utils/preferences.dart';
+import '../mining/miner.dart';
+import 'rola_data.dart';
+import '../database/handle_database.dart';
+import '../utils/preferences.dart';
 
-class _FileCache {
+class _RolaCache {
   final Set<String> hashes = {};
-  final Map<String, int> _albumIds = {};
+  final Map<String, int> albumIds = {};
+  final Map<String, int> performerIds = {}; 
 }
 
 class MinerController {
   final Miner          _miner = Miner();
   final HandleDatabase _db    = HandleDatabase();
-  final _FileCache     _cache = _FileCache();
-
+  final _RolaCache     _cache = _RolaCache();
+  
   int? _unknownPerformerId;
 
   /// Mine the selected dir and return the mined songs
-  Future<List<FileData>> mineAndSave({String? customPath}) async {
+  Future<List<RolaData>> mineAndSave({String? customPath}) async {
     // get dir
     final musicPath = customPath ?? await Preferences.getPath();
     // get the unique hashes from each song
@@ -32,10 +33,10 @@ class MinerController {
     
     await _ensureUnknownPerformer();
 
-    final inserted = <FileData>[];
+    final inserted = <RolaData>[];
     for (final s in songs) {
       if (_cache.hashes.contains(s.audioHash)) {
-        continue; // ya estaba
+        continue;
       }
 
       String? coverHash;
@@ -71,14 +72,29 @@ class MinerController {
 
   Future<void> _ensureUnknownPerformer() async {
     if (_unknownPerformerId != null) {
-      return _unknownPerformerId!;
+      return;
     }
 
     _unknownPerformerId =
         await _db.insertPerformer(idType: 2, name: 'UNKNOWN');
   }
 
-  Future<int> _getOrInsertAlbum(FileData song, String? coverHash) async {
+  Future<int> _getOrInsertPerformer(String name) async {
+    if (name.trim().toUpperCase() == 'UNKNOWN') {
+      return _unknownPerformerId!;
+    }
+    
+    final cached = _cache.performerIds[name];
+    if (cached != null) {
+      return cached;
+    }
+    
+    final id = await _db.insertPerformer(idType: 0, name: name);
+    _cache.performerIds[name] = id;
+    return id;
+  }
+  
+  Future<int> _getOrInsertAlbum(RolaData song, String? coverHash) async {
     final key = '${song.album}-${song.year}';
 
     if (_cache.albumIds.containsKey(key)) {
@@ -86,10 +102,10 @@ class MinerController {
     }
 
     final id = await _db.insertAlbum(
-      path : p.dirname(song.path),
-      name : song.album,
-      year : song.year,
-      coverHash: coverHash,
+      path      : p.dirname(song.path),
+      name      : song.album,
+      year      : song.year,
+      coverHash : coverHash,
     );
 
     _cache.albumIds[key] = id;
