@@ -6,15 +6,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 class Preferences {
   static const _keyMusicPath = 'music_path';
 
-  /// Devuelve el path actual o, si no hay guardado,
-  /// el Music predeterminado del sistema.
+  /// Return kept dir path or Music/ default dir
   static Future<String> getPath() async {
     final prefs = await SharedPreferences.getInstance();
     final stored = prefs.getString(_keyMusicPath);
     if (stored != null && Directory(stored).existsSync()) {
       return stored;
     }
-    // Fallback por plataforma
+    // Fallback
     if (Platform.isAndroid) {
       return '/storage/emulated/0/Music';
     }
@@ -27,7 +26,7 @@ class Preferences {
   /// Set the new path
   static Future<void> setPath(String path) async {
     if (!Directory(path).existsSync()) {
-      throw Exception('Ruta inválida');
+      throw Exception('Invalid path');
     }
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyMusicPath, path);

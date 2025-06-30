@@ -2,36 +2,37 @@ import 'dart:io';                                       // Handle files
 import 'package:path/path.dart' as p;                   // Path files
 import 'package:sqflite/sqflite.dart';                  // SQLite
 import 'package:path_provider/path_provider.dart';      // Get system files
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';   // SQLite for desktop
 import 'package:flutter/services.dart' show rootBundle; // Read .sql files
 
 class UpDatabase {
   UpDatabase._(); //private constructor
+  static final UpDatabase instance = UpDatabase._();
   static const String _databaseName = 'music.db';
-  static final UpDatabase instance = UpDatabase._(); 
 
   Database? _db; //db reference
 
   //return the db if is already up, otherwise create it
-  Future<Database> get database async {
+  Future<Database> get database async =>
     _db ??= await _open();
-    return _db!;
-  }
   
   Future<Database> _open() async {
-    final dir = await getApplicationDocumentsDirectory(); //get a valid 'Documents' dir depending on the SO
-    final path = p.join(dir.path, _databaseName); //put the file music.db on the users Documents dir
+    final dir = await getApplicationDocumentsDirectory();
+    final path = p.join(dir.path, _databaseName);
     
-    if (!File(path).existsSync()) {
-      print('New database created on: $path');
+    print(File(path).existsSync() ? 'Database found at: $path' : 'New database created on: $path');
+    
+    if (Platform.isLinux || Platform.isWindows || Platform.isMacOS) {
+      return databaseFactoryFfi.openDatabase(
+        path,
+        options: OpenDatabaseOptions(
+          version: 1,
+          onCreate: _applySchema,
+        ),
+      );
     } else {
-      print('Database found at: $path');
+      return await openDatabase(path, version: 1, onCreate: _applySchema);
     }
-    
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: _applySchema,
-    );
   }
 
   Future<void> _applySchema(Database db, int version) async {

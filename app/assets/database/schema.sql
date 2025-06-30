@@ -33,7 +33,7 @@ CREATE TABLE in_group (
     id_person     INTEGER,
     id_group      INTEGER,
     PRIMARY KEY   (id_person, id_group),
-    FOREIGN KEY   (id_person) REFERENCES persons(id_person)
+    FOREIGN KEY   (id_person) REFERENCES persons(id_person),
     FOREIGN KEY   (id_group) REFERENCES groups(id_group)
 );
 

@@ -6,11 +6,13 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import '../models/rola_data.dart';
+import 'package:music_database/core/models/rola_data.dart';
 
 class Miner {
-  Future<List<RolaData>> mineDirectory({String? customPath}) async {
-    final files = await _getMp3s(customPath: customPath);
+  
+  Future<List<RolaData>> mineDirectory({required String customPath}) async {
+    final root = Directory(customPath);
+    final files = await _scanDir(root);
     final mined = <RolaData>[];
     for (final f in files) {
       final data = await _mineFile(f);
@@ -21,6 +23,8 @@ class Miner {
     return mined;
   }
 
+  ///I think its not necessarily
+  /*
   /// Find all the mp3 files in the given path, if null, we use Music dir by default
   Future<List<File>> _getMp3s({String? customPath}) async {
     late final Directory root;
@@ -40,7 +44,7 @@ class Miner {
     }
 
     return _scanDir(root);
-  }
+  } */
 
   Future<List<File>> _scanDir(Directory dir, {List<String> exts = const ['.mp3']}) async {
     final matches = <File>[];
@@ -59,25 +63,20 @@ class Miner {
     final Uint8List bytes = await file.readAsBytes();
     final mp3 = MP3Instance(bytes)..parseTagsSync();
     final Map<String, dynamic> tags = mp3.getMetaTags() ?? {};
-
     String _tag(String key, String def) => tags[key] ?? def;
-
     int _year() {   
       final raw = _tag('TDRC', '');
       final value = int.tryParse(raw.replaceAll(RegExp(r'\D'), ''));
       return (value == null || value < 1900) ? file.statSync().modified.year : value;
     }
-
     int _track() {
       final raw = _tag('TRCK', '1');
       return int.tryParse(raw.split('/').first) ?? 1;
     }
-
     Uint8List? _cover() {
       final apic = tags['APIC'];
       return apic is Uint8List ? apic : null;
     }
-    
     return RolaData(
       path: file.path,
       title      : _tag('TIT2', p.basenameWithoutExtension(file.path)),
